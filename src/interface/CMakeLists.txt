@@ -14,6 +14,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/CheckResult.msg"
   "msg/Point3D.msg"
   "msg/Point3DArray.msg"
+  "srv/MatchObject.srv" 
 )
 
 if(BUILD_TESTING)

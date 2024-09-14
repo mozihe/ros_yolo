@@ -1,6 +1,6 @@
 from setuptools import find_packages, setup
 
-package_name = 'solver'
+package_name = 'decision'
 
 setup(
     name=package_name,
@@ -20,8 +20,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'solver_node = solver.solver_node:main',
-            'solveronce_node = solver.solveronce_node:main', 
+            'decision_node = decision.decision_node:main',
         ],
     },
 )
