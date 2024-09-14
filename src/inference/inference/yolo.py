@@ -5,7 +5,7 @@ from random import randint
 from .utils import non_max_suppression
 
 class YOLO:
-    def __init__(self, model_path, labels, model_h, model_w, stride=32,thred_nms=0.45, thred_cond=0.25):
+    def __init__(self, model_path, labels, model_h, model_w, thred_nms=0.45, thred_cond=0.25):
         self.model_h = model_h
         self.model_w = model_w
         self.labels = labels
@@ -19,14 +19,14 @@ class YOLO:
 
     def get_input_name(self):
         input_name=[]
-        for node in self.onnx_session.get_inputs():
+        for node in self.net.get_inputs():
             input_name.append(node.name)
 
         return input_name
 
     def get_output_name(self):
         output_name=[]
-        for node in self.onnx_session.get_outputs():
+        for node in self.net.get_outputs():
             output_name.append(node.name)
 
         return output_name
@@ -58,21 +58,23 @@ class YOLO:
 
         r = min(new_shape[1] / shape[1], new_shape[0] / shape[0])
 
-        new_unpad = (int(shape[0] * r), int(shape[1] * r))
-        dw, dh = (new_shape[1] - new_unpad[1]) / 2, (new_shape[0] - new_unpad[0]) / 2
+        new_unpad = (int(shape[1] * r), int(shape[0] * r))
+        dw, dh = (new_shape[1] - new_unpad[0]) / 2, (new_shape[0] - new_unpad[1]) / 2
         
         if shape[::-1] != new_unpad:
             img_pre = cv2.resize(img, new_unpad, interpolation=cv2.INTER_LINEAR)
+        else:
+            img_pre = img
 
         top, bottom = int(round(dh - 0.1)), int(round(dh + 0.1))
         left, right = int(round(dw - 0.1)), int(round(dw + 0.1))
 
-        img_pre = cv2.copyMakeBorder(img, top, bottom, left, right, cv2.BORDER_CONSTANT, value=[114, 114, 114])
+        img_pre = cv2.copyMakeBorder(img_pre, top, bottom, left, right, cv2.BORDER_CONSTANT, value=[114, 114, 114])
 
-        img_pre = img[:, :, ::-1].transpose(2, 0, 1)
-        img_pre = np.ascontiguousarray(img, dtype=np.float32)
+        img_pre = img_pre[:, :, ::-1].transpose(2, 0, 1)
+        img_pre = np.ascontiguousarray(img_pre, dtype=np.float32)
         img_pre /= 255.0
-        img_pre = np.expand_dims(img, axis=0)
+        img_pre = np.expand_dims(img_pre, axis=0)
 
         return img_pre
     
@@ -80,8 +82,8 @@ class YOLO:
         outs[:, :4] = self.scale_coords((self.model_h, self.model_w), outs[:, :4], (src_h, src_w)).round()
         boxes = outs[:, :4]
         confs = outs[:, 4]
-        ids = outs[:, 5]
-        return boxes.tolist(), confs.tolist(), ids.tolist()
+        ids = outs[:, 5].astype(np.int32)
+        return np.array(boxes), np.array(confs), np.array(ids)
     
 
     def infer_img(self, img):

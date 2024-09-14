@@ -71,7 +71,7 @@ def non_max_suppression(prediction,
     if x.shape[0] > max_nms:
         x = x[x[:, 4].argsort()[::-1][:max_nms]]
     boxes, scores = x[:, :4], x[:, 4]
-    i = numpy_cpu_nms(boxes, scores, iou_thres)
+    i = numpy_cpu_nms(boxes, scores, iou_thres).astype(np.int)
     if i.shape[0] > max_det:
         i = i[:max_det]
     return x[i]
