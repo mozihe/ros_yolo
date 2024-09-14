@@ -1,0 +1,1 @@
+Object[] objects  # 包含多个物体的推理结果数组
